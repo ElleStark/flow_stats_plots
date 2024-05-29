@@ -4,6 +4,9 @@
 
 import h5py
 import logging
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from mpi4py import MPI
 import numpy as np
 import time
@@ -19,8 +22,6 @@ INFO = logger.info
 WARN = logger.warn
 DEBUG = logger.debug
 
-# Store output in rc_scratch
-out_path = '/rc_scratch/elst4602/tests/uStatTests.npy'
 
 # MPI setup and related data
 comm_world = MPI.COMM_WORLD
@@ -31,24 +32,32 @@ num_procs = comm_world.Get_size()
 print('RUNNING ON {num_procs} CORES.'.format(num_procs=num_procs))
 
 
-if (my_rank==0):
+# if (my_rank==0):
     # process 0 reads in data from PetaLibrary
-    DEBUG('Reading data from PetaLibrary')
+DEBUG('Reading data from PetaLibrary')
 
-    start_t = time.time()
+start_t = time.time()
 
-    file_path = '/pl/active/odor2action/Data/odorPlumeData/multisource-plume-simulations/hdf5/Re100_0_5mm_50Hz_16source_FTLE_manuscript.h5'
+file_path = '/pl/active/odor2action/Data/odorPlumeData/multisource-plume-simulations/hdf5/Re100_0_5mm_50Hz_16source_FTLE_manuscript.h5'
 
-    with h5py.File(file_path, 'r') as f:
-        u_data = f.get('Flow Data/u')[:-1, :, :].transpose(1, 2, 0)  # original: [time, x, y] array with dims [3001, 1001, 846]
+with h5py.File(file_path, 'r') as f:
+    u_data = f.get('Flow Data/u')[:-1, :, :].transpose(2, 1, 0)  # original: [time, x, y] array with dims [3001, 1001, 846]
 
-    total_t = time.time() - start_t
-    INFO('u array read from PetaLibrary in {total_t} sec'.format(total_t=total_t))
+total_t = time.time() - start_t
+INFO('u array read from PetaLibrary in {total_t} sec'.format(total_t=total_t))
 
-    u_slice = u_data[0, 0, 1:10]
-    DEBUG('First 10 vals of u array: {u_slice}'.format(u_slice=u_slice))
+u_slice = u_data[0, 0, 1:10]
+DEBUG('First 10 vals of u array: {u_slice}'.format(u_slice=u_slice))
 
-    # np.save(out_path, u_slice)
+# Store output in rc_scratch
+# out_path = '/rc_scratch/elst4602/tests/uStatTests.npy'
+# np.save(out_path, u_slice)
+
+# FOR CASE WITH 1 TASK:
+
+# QC plot: original u_data at time 0
+plt.pcolormesh(u_data[:, :, 0])
+plt.savefig('/rc_scratch/elst4602/tests/u_orig.png')
 
 # Compute number of elements per spatial grid and per processor
 n_grid = u_data[:, :, 0].size
@@ -59,11 +68,19 @@ n_per_proc = n_grid * tsteps_per_proc
 # Buffer array to fill in each process
 u_chunk = np.empty(n_per_proc, dtype=np.float64)
 
+# reshape u_data into 1D array
+u_data = np.reshape(u_data, -1) 
+
+# QC plot: reshape and plot one timestep of u data
+u_check = np.reshape(u_data, (1001, 846, 3000))
+plt.pcolormesh(u_data[:, :, 0])
+plt.savefig('/rc_scratch/elst4602/tests/u_reshaped.png')
+
+
 # scatter u data from process 0 into variable 'u_data' variable in other processes
-comm_world.Scatter([u_data, MPI.DOUBLE], [u_chunk, MPI.DOUBLE])
+# comm_world.Scatter([u_data, MPI.DOUBLE], [u_chunk, MPI.DOUBLE])
 
 # INTEGRAL LENGTH SCALE COMPUTATION FOR EACH PROCESS:
-# subset domain for computing ILS, selecting time step based on rank of process
 
 
 
