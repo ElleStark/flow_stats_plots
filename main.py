@@ -7,6 +7,7 @@ Elle Stark, May 2024
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
+import utils
 plt.rcParams["mathtext.fontset"] = "dejavuserif"
 
 def main():
@@ -24,12 +25,12 @@ def main():
         # Spatial resolution
         dx = f.get('Model Metadata/spatialResolution')[0].item()
 
+    # Decompose velocity fields into mean and fluctuating components of u and v
+    u_mean, u_flx = utils.reynolds_decomp(u_data, time_ax=0)
+    v_mean, v_flx = utils.reynolds_decomp(v_data, time_ax=0)
+    
     # Calculate mean, standard deviation, RMS of field of interest
-    data = u_data
-    mean_field = np.mean(data, axis=0, keepdims=True)
-    flx_field = data - mean_field  # fluctuating component of velocity
-    mean_v = np.mean(v_data, axis=0)
-    mean_u = np.mean(u_data, axis=0)
+
 
 
 
