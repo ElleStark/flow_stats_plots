@@ -3,6 +3,7 @@
 # June 2024
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import colors
 
 def reynolds_decomp(flowfield, time_ax=0):
     """decomposes time series of 2D flowfield data into its mean and fluctuating components
@@ -22,9 +23,43 @@ def reynolds_decomp(flowfield, time_ax=0):
     decomp_fields = [mean_field, flx_field]
     return decomp_fields
 
-def plot_field_xy(xgrid, ygrid, field, cmap, title, colorbar=True):
+def plot_field_xy(x_grid, y_grid, field, cmap, title, filepath='plot.png', colorbar=True, save=True, dpi=300, vecs=False, field2=None):
+    """plot 2D field with specified colormap and, if save=True, save at high resolution.
+
+    Args:
+        x_grid (2d-array): x locations 
+        y_grid (2d-array): y locations
+        field (2d-array): values for field of interest
+        cmap (matlap color map): color map to use for plotting.
+        title (string): plot title
+        filepath (string, optional): path to desired save location. Defaults to 'plot.png'.
+        colorbar (bool, optional): whether to include color bar on figure. Defaults to True.
+        save (bool, optional): whether to save plot to file. Defaults to true.
+        dpi (int, optional): resolution at which to save plot. Defaults to 300.
+    """
     fig, ax = plt.subplots(figsize=(5.9, 4))
-    
+
+    if vecs:
+        plt.streamplot(x_grid, y_grid, field, field2, density=1, linewidth=0.5, color='white')
+
+    # define color map
+    vmin = np.min([np.min(field), -np.max(field)])
+    vmax = np.max([np.max(field), -np.min(field)])
+
+    norm = colors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+    plt.pcolormesh(x_grid, y_grid, field, cmap=cmap, norm=norm)
+
+    plt.xlabel(r'$x$ (m)')
+    plt.ylabel(r'$y$ (m)')
+    plt.axis('equal')
+    plt.title(title)
+    if colorbar:
+        ticks = [vmin, 3*vmin/4, vmin/2, vmin/4, 0, vmax/4, vmax/2, 3*vmax/4, vmax]
+        plt.colorbar(ticks=ticks)
+    if save:
+        plt.savefig(filepath, dpi=dpi)
+    else:
+        plt.show()
     
 # PLOTTING
 #

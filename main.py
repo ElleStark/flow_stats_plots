@@ -8,11 +8,12 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import utils
+import cmasher as cmr
 plt.rcParams["mathtext.fontset"] = "dejavuserif"
 
 def main():
     # Read in data from HDF5 file
-    filename = 'D:/Re100_0_5mm_50Hz_16source_FTLE_manuscript.h5'
+    filename = 'G:/Re100_0_5mm_50Hz_16source_FTLE_manuscript.h5'
     with h5py.File(filename, 'r') as f:
         # x and y grids for plotting
         x_grid = f.get(f'Model Metadata/xGrid')[:].T
@@ -29,6 +30,11 @@ def main():
     u_mean, u_flx = utils.reynolds_decomp(u_data, time_ax=0)
     v_mean, v_flx = utils.reynolds_decomp(v_data, time_ax=0)
     
+    # Plot mean velocity fields
+    cmap = cmr.iceburn_r
+    utils.plot_field_xy(x_grid, np.flipud(y_grid), u_mean, cmap=cmap, title='mean u', filepath='ignore/u_mean_cmr_vecs.png', dpi=600, vecs=True, field2=v_mean)
+
+
     # Calculate mean, standard deviation, RMS of field of interest
 
 
