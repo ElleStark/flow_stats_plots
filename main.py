@@ -13,14 +13,14 @@ plt.rcParams["mathtext.fontset"] = "dejavuserif"
 
 def main():
     # Read in data from HDF5 file
-    filename = 'G:/Re100_0_5mm_50Hz_16source_FTLE_manuscript.h5'
+    filename = 'E:/Re100_0_5mm_50Hz_16source_FTLE_manuscript.h5'
     with h5py.File(filename, 'r') as f:
         # x and y grids for plotting
         x_grid = f.get(f'Model Metadata/xGrid')[:].T
         y_grid = f.get(f'Model Metadata/yGrid')[:].T
 
         # u and v velocity field data
-        u_data = f.get('Flow Data/u')[:].transpose(0, 2, 1)
+        # u_data = f.get('Flow Data/u')[:].transpose(0, 2, 1)
         v_data = f.get('Flow Data/v')[:].transpose(0, 2, 1)
 
         # Spatial resolution
@@ -29,10 +29,10 @@ def main():
     # Decompose velocity fields into mean and fluctuating components of u and v
     u_mean, u_flx = utils.reynolds_decomp(u_data, time_ax=0)
     v_mean, v_flx = utils.reynolds_decomp(v_data, time_ax=0)
-    
+
     # Plot mean velocity fields
-    cmap = cmr.iceburn_r
-    utils.plot_field_xy(x_grid, np.flipud(y_grid), u_mean, cmap=cmap, title='mean u', filepath='ignore/u_mean_cmr_vecs.png', dpi=600, vecs=True, field2=v_mean)
+    cmap = cmr.waterlily_r
+    utils.plot_field_xy(x_grid, np.flipud(y_grid), v_mean, cmap=cmap, title='mean v', filepath='ignore/v_mean.png', dpi=600)
 
 
     # Calculate mean, standard deviation, RMS of field of interest
