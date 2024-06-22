@@ -4,6 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
+import cmasher as cmr
 
 def reynolds_decomp(flowfield, time_ax=0):
     """decomposes time series of 2D flowfield data into its mean and fluctuating components
@@ -23,7 +24,8 @@ def reynolds_decomp(flowfield, time_ax=0):
     decomp_fields = [mean_field, flx_field]
     return decomp_fields
 
-def plot_field_xy(x_grid, y_grid, field, cmap, title, filepath='plot.png', colorbar=True, save=True, dpi=300, vecs=False, field2=None):
+def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot.png', colorbar=True, save=True, 
+                  dpi=300, vecs=False, field2=None, smooth=False, trimmed=False):
     """plot 2D field with specified colormap and, if save=True, save at high resolution.
 
     Args:
@@ -43,12 +45,34 @@ def plot_field_xy(x_grid, y_grid, field, cmap, title, filepath='plot.png', color
         plt.streamplot(x_grid, y_grid, field, field2, density=1, linewidth=0.5, color='white')
 
     # define color map
-    vmin = np.min([np.min(field), -np.max(field)])
-    vmax = np.max([np.max(field), -np.min(field)])
+    if range is None:
+        vmin = np.min([np.min(field), -np.max(field)])
+        vmax = np.max([np.max(field), -np.min(field)])
+    else:
+        vmin = range[0]
+        vmax = range[1]
 
-    norm = colors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
-    plt.pcolormesh(x_grid, y_grid, field, cmap=cmap, norm=norm)
+    ctype = cmr.get_cmap_type(cmap)
+    if ctype=='diverging':
+        norm = colors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+    else:
+        norm = colors.Normalize(vmin=vmin, vmax=vmax)
 
+    if smooth:
+        shading='gouraud'
+    else:
+        shading='flat'
+    
+    plt.pcolormesh(x_grid, y_grid, field, cmap=cmap, norm=norm, shading=shading)
+
+    if trimmed:
+        ymin = -0.15
+        ymax = 0.15
+    else:
+        ymin = min(y_grid[:, 0])
+        ymax = max(y_grid[:, 0])
+        
+    plt.ylim(ymin, ymax)
     plt.xlabel(r'$x$ (m)')
     plt.ylabel(r'$y$ (m)')
     plt.axis('equal')
