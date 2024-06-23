@@ -46,8 +46,8 @@ def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot
 
     # define color map
     if range is None:
-        vmin = np.min([np.min(field), -np.max(field)])
-        vmax = np.max([np.max(field), -np.min(field)])
+        vmin = np.min([np.nanmin(field), -np.nanmax(field)])
+        vmax = np.max([np.nanmax(field), -np.nanmin(field)])
     else:
         vmin = range[0]
         vmax = range[1]
@@ -61,9 +61,9 @@ def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot
     if smooth:
         shading='gouraud'
     else:
-        shading='flat'
+        shading='auto'
     
-    plt.pcolormesh(x_grid, y_grid, field, cmap=cmap, norm=norm, shading=shading)
+    mesh = ax.pcolormesh(x_grid, y_grid, field, cmap=cmap, norm=norm, shading=shading)
 
     if trimmed:
         ymin = -0.15
@@ -71,19 +71,21 @@ def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot
     else:
         ymin = min(y_grid[:, 0])
         ymax = max(y_grid[:, 0])
-        
-    plt.ylim(ymin, ymax)
-    plt.xlabel(r'$x$ (m)')
-    plt.ylabel(r'$y$ (m)')
-    plt.axis('equal')
-    plt.title(title)
+    
+    ax.axis('equal')
+    ax.set_adjustable('box')
+    ax.set_ylim(ymin=ymin, ymax=ymax)
+    # plt.set_ylim(ymin, ymax)
+    ax.set_xlabel(r'$x$ (m)')
+    ax.set_ylabel(r'$y$ (m)')
+    ax.set_title(title)
     if colorbar:
         ticks = [vmin, 3*vmin/4, vmin/2, vmin/4, 0, vmax/4, vmax/2, 3*vmax/4, vmax]
-        plt.colorbar(ticks=ticks)
+        fig.colorbar(mesh, ax=ax, ticks=ticks)
     if save:
-        plt.savefig(filepath, dpi=dpi)
+        fig.savefig(filepath, dpi=dpi)
     else:
-        plt.show()
+        fig.show()
     
 # PLOTTING
 #
