@@ -45,17 +45,22 @@ def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot
         plt.streamplot(x_grid, y_grid, field, field2, density=1, linewidth=0.5, color='white')
 
     # define color map
-    if range is None:
-        vmin = np.min([np.nanmin(field), -np.nanmax(field)])
-        vmax = np.max([np.nanmax(field), -np.nanmin(field)])
-    else:
-        vmin = range[0]
-        vmax = range[1]
-
     ctype = cmr.get_cmap_type(cmap)
     if ctype=='diverging':
+        if range is None:
+            vmin = np.min([np.nanmin(field), -np.nanmax(field)])
+            vmax = np.max([np.nanmax(field), -np.nanmin(field)])
+        else:
+            vmin = range[0]
+            vmax = range[1]
         norm = colors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
     else:
+        if range is None:
+            vmin = np.nanmin(field)
+            vmax = np.nanmax(field)
+        else:
+            vmin = range[0]
+            vmax = range[1]
         norm = colors.Normalize(vmin=vmin, vmax=vmax)
 
     if smooth:
