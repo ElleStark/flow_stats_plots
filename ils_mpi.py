@@ -48,7 +48,7 @@ def main():
     # filename = '/pl/active/odor2action/Data/odorPlumeData/multisource-plume-simulations/hdf5/Re100_0_5mm_50Hz_16source_FTLE_manuscript.h5'
     # dataset_name = 'Flow Data/u'
     filename = '/pl/active/odor2action/Stark_data/ms_plume_supplementarydata/fluctfields.h5'
-    dataset_name = 'v_flx' # Choose u_flx or v_flx for fluctuating component of streamwise (u) or cross-stream(v) velocity
+    dataset_name = 'u_flx' # Choose u_flx or v_flx for fluctuating component of streamwise (u) or cross-stream(v) velocity
 
     # Select integral length scale correlation direction: streamwise = True, or streamwise = False for cross-stream
     streamwise = False
@@ -81,9 +81,7 @@ def main():
     # local_result = np.sum(local_u_chunk, axis=0)
 
     # LOCAL RESULTS: CALCULATE INTEGRAL LENGTH SCALE
-    # Generally follows approach used in Tootoonian et. al. 2023, see https://github.com/stootoon/fisher-plumes/blob/main/boulder.py
-    # BUT integrating entire autocorrelation function, r, (+/- infinity) had issues in some areas where r showed large negative oscillations
-    # So, used integration to first zero crossing for integral length scales in the cross-stream direction
+    # Follows approach used in Tootoonian et. al. 2023, see https://github.com/stootoon/fisher-plumes/blob/main/boulder.py
 
     dims = local_u_chunk.shape
     # For streamwise ILS, idx_1=0 and idx_2=1; reverse for cross-stream
@@ -135,6 +133,13 @@ def main():
             ils = np.nansum(fr * dx)
             ils_array[i, j] = ils
 
+            # # Add q_plus and q_minus to get components of autocorrelation function
+            # qsum = q_plus + q_minus
+            # DEBUG(f'qsum dimensions: {qsum.shape}')
+            # qsum_array[:, i, j] = qsum
+
+
+    # local_result = qsum_array.flatten()
     local_result = ils_array.flatten()
     # local_u_mean = np.mean(local_u_chunk, axis=2)
     # local_u_mean = local_u_chunk[:, :, 0]
