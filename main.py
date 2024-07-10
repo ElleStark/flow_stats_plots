@@ -21,15 +21,67 @@ def main():
         y_grid = f.get(f'Model Metadata/yGrid')[:].T
 
         # u and v velocity field data
-        u_data = f.get('Flow Data/u')[:].transpose(0, 2, 1)
+        u_data = f.get('Flow Data/u')[:].transpose(0, 2, 1)  # original dimensions (time, x, y) = (3001, 1001, 846)
         v_data = f.get('Flow Data/v')[:].transpose(0, 2, 1)
 
         # Spatial resolution
-        dx = f.get('Model Metadata/spatialResolution')[0].item()
+        # dx = f.get('Model Metadata/spatialResolution')[0].item()
+        dx = 0.0005  #m
 
     # Decompose velocity fields into mean and fluctuating components of u and v
     u_mean, u_flx = utils.reynolds_decomp(u_data, time_ax=0)
     v_mean, v_flx = utils.reynolds_decomp(v_data, time_ax=0)
+
+    # Compute fluctuating strain rate 
+    # dt = 0.02  # sec
+    # duflx_grad = np.gradient(u_flx, dt, dx, dx)
+    # duflx_grad = np.asarray(duflx_grad)
+    # duflx_dy = duflx_grad[1, :, :, :]
+    # np.save('ignore/duflx_dyv2.npy', duflx_dy)
+    # dvflx_grad = np.gradient(v_flx, dt, dx, dx)
+    # dvflx_grad = np.asarray(duflx_grad)
+    # dvflx_dx = dvflx_grad[2, :, :, :]
+    # np.save('ignore/dvflc_dxv2.npy', dvflx_dx)
+
+    duflx_dy = np.load('ignore/duflx_dyv2.npy')
+    dvflx_dx = np.load('ignore/dvflc_dxv2.npy')
+    # flx_strain = np.mean(1/2 * (duflx_dy + dvflx_dx), axis=0)
+    # flx_strain = np.mean(duflx_dy, axis=0)
+
+    nu = 1.5 * 10**(-5) # kinematic viscosity 
+    # Compute viscous energy dissipation rate
+    # epsilon = 2 * flx_strain * flx_strain
+    # epsilon = np.mean(duflx_dy * duflx_dy, axis=0)
+    epsilon = np.mean((duflx_dy**2 + dvflx_dx**2), axis=0)
+    print(f'avg viscous dissipation: {np.mean(epsilon)}')
+    print(f'avg viscous dissipation, x=[0, 0.05] and y=[-0.15, 0.15]: {np.mean(epsilon[123:723, 0:100])}')
+    plt.close()
+    plt.pcolormesh(epsilon)
+    plt.colorbar()
+    plt.show()
+
+    # Taylor_microscale = np.sqrt(15 / epsilon) * np.sqrt(0.5 * (np.mean(u_flx**2, axis=0) + np.mean(v_flx**2, axis=0)))
+    # Taylor_microscale = np.sqrt(10 / epsilon) * np.sqrt((np.mean(u_flx**2, axis=0)))
+    uprime = np.sqrt(0.5*(np.mean(u_flx**2, axis=0) + np.mean(v_flx**2, axis=0)))  # root mean square velocity
+    K_tscale = 1 / np.sqrt(np.mean(np.sqrt((duflx_dy**2 + dvflx_dx**2))**2, axis=0))
+    Taylor_microscale = np.sqrt(15)*uprime*K_tscale
+    Taylor_Re = uprime * Taylor_microscale / nu
+    
+    # PLOT: Taylor microscale, computed per Carbone & Wilczek, 2024 (https://doi.org/10.1017/jfm.2024.165)
+    print(f'avg Taylor microscale: {np.mean(Taylor_microscale)}')
+    print(f'avg Taylor microscale from x=[0, 0.05] and y=[-0.15, 0.15]: {np.mean(Taylor_microscale[123:723, 0:100])}')
+    plt.close()
+    plt.pcolormesh(Taylor_microscale)
+    plt.colorbar()
+    plt.show()
+
+    # PLOT: Taylor Reynolds number using methods from Carbone & Wilczek, 2024 (https://doi.org/10.1017/jfm.2024.165)
+    print(f'avg Taylor Re: {np.mean(Taylor_Re)}')
+    print(f'avg Taylor Re from x=[0, 0.05] and y=[-0.15, 0.15]: {np.mean(Taylor_Re[123:723, 0:100])}')
+    plt.close()
+    plt.pcolormesh(Taylor_Re)
+    plt.colorbar()
+    plt.show()
 
 
     # Compute turbulent kinetic energy
