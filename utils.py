@@ -1,6 +1,6 @@
-# Utility functions for computing relavent flow statistics for turbulent flow field
-# Elle Stark, University of Colorado Boulder
-# June 2024
+# Functions for computing relavent flow statistics for turbulent flow field
+# Elle Stark, University of Colorado Boulder, June 2024
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
@@ -25,7 +25,7 @@ def reynolds_decomp(flowfield, time_ax=0):
     return decomp_fields
 
 def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot.png', colorbar=True, save=True, 
-                  dpi=300, vecs=False, field2=None, smooth=False, trimmed=False):
+                  dpi=300, vecs=False, field2=None, shading='auto', trimmed=False):
     """plot 2D field with specified colormap and, if save=True, save at high resolution.
 
     Args:
@@ -38,6 +38,10 @@ def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot
         colorbar (bool, optional): whether to include color bar on figure. Defaults to True.
         save (bool, optional): whether to save plot to file. Defaults to true.
         dpi (int, optional): resolution at which to save plot. Defaults to 300.
+        vecs (bool, optional): if true, overlays arrow plot of field specified in "field2" arg. Defaults to false.
+        field2 (2d-array, optional): data for second field for overlaying arrow plot. Defaults to None. 
+        shading (string, optional): specifies shading for pcolormesh plot. Defaults to 'auto'.
+        trimmed (bool, optional): if true, trims plotted domain to y[-0.15, 0.15].
     """
     fig, ax = plt.subplots(figsize=(5.9, 4))
 
@@ -62,11 +66,6 @@ def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot
             vmin = range[0]
             vmax = range[1]
         norm = colors.Normalize(vmin=vmin, vmax=vmax)
-
-    if smooth:
-        shading='gouraud'
-    else:
-        shading='auto'
     
     mesh = ax.pcolormesh(x_grid, y_grid, field, cmap=cmap, norm=norm, shading=shading)
 
@@ -91,28 +90,4 @@ def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot
         fig.savefig(filepath, dpi=dpi)
     else:
         fig.show()
-    
-# PLOTTING
-#
-# plt.close()
-#
-# # x-direction velocity
-# # define u scale, with white at zero
-# stat_u = mean_u
-# # vmin = np.min(stat_u)
-# vmin = -0.05
-# # vmax = np.max(stat_u)
-# vmax = 0.18
-# norm = colors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
-# # plot using pcolormesh
-# fig, ax = plt.subplots(figsize=(5.9, 4))
-# plt.pcolormesh(x_grid, y_grid, stat_u, cmap='PuOr', norm=norm)
-# plt.xlabel(r'$x$ (m)')
-# plt.ylabel(r'$y$ (m)')
-# plt.axis('equal')
-# plt.title(r'$\overline{u}$ (m/s)')
-# # plt.title(r'$RMS_v$ (m/s)')
-# plt.colorbar()
-# plt.savefig('u_mean_fisherPlume.png', dpi=300)
-# plt.show()
 

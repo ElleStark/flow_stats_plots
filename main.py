@@ -1,6 +1,6 @@
 """
-Script to compute and plot flow field statistics, including mean velocities, integral scales, and turbulence intensity & isotropy.
-Separate script included in repository to compute integral scales using the HPC resources (Blanca compute node at CU Boulder).
+Script to compute and plot flow field statistics, including mean velocities, turbulence intensity, and turbulence isotropy.
+Separate script included in repository to compute integral length scales using the HPC resources (Blanca compute node at CU Boulder).
 Elle Stark, May 2024
 """
 
@@ -95,8 +95,8 @@ def main():
 
     # PLOT: mean velocity field (consistent axes version)
     cmap = cmr.waterlily_r
-    utils.plot_field_xy(x_grid, y_grid, u_mean, cmap=cmap, title='mean v', range=[-0.1785, 0.1785], filepath='ignore/v_mean_flipped.png', dpi=600)
-    utils.plot_field_xy(x_grid, y_grid, v_mean, cmap=cmap, title='mean u', filepath='ignore/u_mean_flipped.png', dpi=600)
+    utils.plot_field_xy(x_grid, y_grid, u_mean, cmap=cmap, title='mean v', range=[-0.1785, 0.1785], filepath='ignore/v_mean.png', dpi=600)
+    utils.plot_field_xy(x_grid, y_grid, v_mean, cmap=cmap, title='mean u', filepath='ignore/u_mean.png', dpi=600)
 
     # # PLOTS: integral scales
     # ils_uxstream = np.load('ignore/ILS_u_cross_stream.npy')
