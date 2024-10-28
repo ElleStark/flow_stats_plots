@@ -17,12 +17,14 @@ def reynolds_decomp(flowfield, time_ax=0):
         decomp_fields (list): [mean field, fluctuating field], where mean field is 2D array of flow averaged over time and 
             fluctuating field is 3D array of fluctuating component of flow at each timestep.
     """
-    mean_field = np.mean(flowfield, axis=time_ax, keepdims=True)
-    flx_field = flowfield - mean_field
-    mean_field = mean_field[0, :, :]
+    mean_field = np.mean(flowfield, axis=time_ax, keepdims=False)
+    flowfield = flowfield - mean_field
+    # mean_field = mean_field[0, :, :]
 
-    decomp_fields = [mean_field, flx_field]
-    return decomp_fields
+    # decomp_fields = [mean_field, flx_field]
+    # return decomp_fields
+
+    return flowfield
 
 def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot.png', colorbar=True, save=True, 
                   dpi=300, vecs=False, field2=None, shading='auto', trimmed=False):
