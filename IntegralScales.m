@@ -9,12 +9,12 @@
 clc; clear vars; close all;
 
 % Set up H5 directory folders
-h5_dir = 'E:/';
-h5_file = [h5_dir 'Re100_0_5mm_50Hz_16source_FTLE_manuscript.h5'];
+h5_dir = 'D:/';
+h5_file = [h5_dir 'singlesource_2d_extended/Re100_0_5mm_50Hz_singlesource_2d.h5'];
 
 %% Read in numeric grids and velocity arrays from h5 file
 startFrame = 1;
-endFrame = 3000;
+endFrame = 9001;
 
 dt = h5read(h5_file,'/Model Metadata/timeResolution'); dt = 1/dt; % time step of model data, 50 Hz for COMSOL sims packaged in h5 structures
 spatialResolution = h5read(h5_file,'/Model Metadata/spatialResolution');
@@ -23,14 +23,15 @@ xMesh = h5read(h5_file,'/Model Metadata/xGrid'); x_gridVector = min(xMesh,[],'al
 yMesh = h5read(h5_file,'/Model Metadata/yGrid'); y_gridVector = min(yMesh,[],'all'):spatialResolution:max(yMesh,[],'all');
 
 % uStack = h5read(h5_file,'/Flow Data/u',[1 1 startFrame],[size(xMesh,1) size(xMesh,2) endFrame]); % About 10 GB RAM per variable (for all time)
-vStack = h5read(h5_file,'/Flow Data/v',[1 1 startFrame],[size(xMesh,1) size(xMesh,2) endFrame]);
+dataStack = h5read(h5_file,'/Flow Data/u',[1 1001 startFrame],[size(xMesh,1) 500 endFrame]);
+% vStack = h5read(h5_file,'/Flow Data/v',[1 1 startFrame],[size(xMesh,1) size(xMesh,2) endFrame]);
 
 % odorStack = h5read(h5_file,'/Odor Data/c1a',[1 1 startFrame],[size(xMesh,1) size(xMesh,2) endFrame]);
 
 timeArray = h5read(h5_file,'/Model Metadata/timeArray');
 
 % Assign desired field to dataStack variable
-dataStack = vStack;
+% dataStack = uStack;
 
 % Flatten spatial arrays into stack of vectors to input to functions
 data_vecs = reshape(dataStack, [], size(dataStack, 3), 1);
@@ -62,8 +63,8 @@ Tux_array = reshape(Tux, size(dataStack, 1), size(dataStack, 2));
 %% Save and plot results
 
 % Save arrays of integral time scales
-% save('Plots/Lux_array_u.mat', 'Lux_array')
-save('Plots/Tux_array_v.mat', 'Tux_array')
+save('Plots/Lux_array_u_extendedsim3.mat', 'Tux_array')
+% save('Plots/Tux_array_v.mat', 'Tux_array')
 
 % Plot integral length scales across domain
 % figure;
@@ -76,7 +77,7 @@ save('Plots/Tux_array_v.mat', 'Tux_array')
 
 % Plot integral time scales across domain
 figure; 
-pcolor(xMesh, yMesh, Tux_array);
+pcolor(xMesh(:, 501:1000), yMesh(:, 501:1000), Tux_array);
 shading interp;
 axis equal;
 axis tight;
@@ -90,6 +91,6 @@ box off;
 % c.Ticks = linspace(0, 0.7, 8);
 % set(c, 'YTick', [0:0.1:0.7]);
 caxis([0, 2.5]);
-title('Integral Time Scale (s) of v field');
-print(gcf, 'ITS_v.png', '-dpng', '-r600');
+title('Integral Time Scale (s) of u field');
+print(gcf, 'Plots/ITS_u3.png', '-dpng', '-r600');
 
