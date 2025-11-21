@@ -4,7 +4,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
+from matplotlib import rc
 import cmasher as cmr
+import h5py
+
+rc('text', usetex=True)
 
 def reynolds_decomp(flowfield, time_ax=0):
     """decomposes time series of 2D flowfield data into its mean and fluctuating components
@@ -27,7 +31,7 @@ def reynolds_decomp(flowfield, time_ax=0):
     return flowfield
 
 def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot.png', colorbar=True, save=True, 
-                  dpi=300, vecs=False, field2=None, shading='auto', trimmed=False):
+                  dpi=300, vecs=False, field2=None, shading='auto', trimmed=False, arrows=False, u=None, v=None):
     """plot 2D field with specified colormap and, if save=True, save at high resolution.
 
     Args:
@@ -67,7 +71,9 @@ def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot
         else:
             vmin = range[0]
             vmax = range[1]
-        norm = colors.Normalize(vmin=vmin, vmax=vmax)
+        # norm = colors.Normalize(vmin=vmin, vmax=vmax)
+        field[field < vmin] = vmin
+        norm = colors.LogNorm(vmin=vmin, vmax=vmax)
     
     mesh = ax.pcolormesh(x_grid, y_grid, field, cmap=cmap, norm=norm, shading=shading)
 
@@ -77,6 +83,9 @@ def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot
     else:
         ymin = min(y_grid[:, 0])
         ymax = max(y_grid[:, 0])
+
+    
+
     
     ax.axis('equal')
     ax.set_adjustable('box')
@@ -86,10 +95,28 @@ def plot_field_xy(x_grid, y_grid, field, title, cmap, range=None, filepath='plot
     ax.set_ylabel(r'$y$ (m)')
     ax.set_title(title)
     if colorbar:
-        ticks = [vmin, 3*vmin/4, vmin/2, vmin/4, 0, vmax/4, vmax/2, 3*vmax/4, vmax]
+        ticks = [0, vmax/4, vmax/2, 3*vmax/4, vmax]
         fig.colorbar(mesh, ax=ax, ticks=ticks)
+    
+    if arrows:
+        n = 70
+        ny = 45
+        plt.quiver(x_grid[::ny, ::n], y_grid[::ny, ::n], u[::ny, ::n], v[::ny, ::n], headwidth=3, headlength=4)
+    
     if save:
         fig.savefig(filepath, dpi=dpi)
     else:
         fig.show()
+
+
+def plot_spectrum(omegas, energies, sensor):
+    fig, ax = plt.subplots()
+    plt.plot(omegas, energies)
+    plt.title(f'output frequency vs energy, sensor {sensor}')
+    plt.xlabel(u'\u03C9')
+    # fig.gca().set_xlabel(r'2 $\pi$ $\omega$ (Hz)')
+    plt.show()
+
+
+
 

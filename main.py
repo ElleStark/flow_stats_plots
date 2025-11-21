@@ -17,23 +17,59 @@ def main():
     filename = 'D:/singlesource_2d_extended/Re100_0_5mm_50Hz_singlesource_2d.h5'
     with h5py.File(filename, 'r') as f:
         # x and y grids for plotting
-        x_grid = f.get(f'Model Metadata/xGrid')[:].T
-        y_grid = f.get(f'Model Metadata/yGrid')[:].T
+        x_grid = f.get(f'Model Metadata/xGrid')[:, :].T
+        y_grid = f.get(f'Model Metadata/yGrid')[:, :].T
 
         # u and v velocity field data
-        # u_flx = f.get('Flow Data/u')[:, ].transpose(0, 2, 1)  # original dimensions (time, x, y) = (9001, 1501, 1201)
-        # v_data = f.get('Flow Data/v')[:].transpose(0, 2, 1)
+        # u_flx = f.get('Flow Data/u')[1500:1502, :, :].transpose(0, 2, 1)  # original dimensions (time, x, y) = (9001, 1501, 1201)
+        # v_flx = f.get('Flow Data/v')[1500:1502, :, :].transpose(0, 2, 1)
+
+        # odor concentration field data
+        # odor = f.get('Odor Data/c')[1500:1502, :, :].transpose(0, 2, 1)
 
         # Spatial resolution
         # dx = f.get('Model Metadata/spatialResolution')[0].item()
         dx = 0.0005  #m
 
-    # Decompose velocity fields into mean and fluctuating components of u and v
-    # u_flx = utils.reynolds_decomp(u_flx, time_ax=0)
-    # v_flx = utils.reynolds_decomp(v_data, time_ax=0)[1]
-    # u_flx = u_flx - np.mean(u_flx, axis=0, keepdims=False)
+    # PLOT: example instantaneous velocity field
+    # cmap = cmr.waterlily_r
+    # utils.plot_field_xy(x_grid, y_grid, u_flx[0, :, :], cmap=cmap, range=[-0.25, 0.25], title='instantaneous velocity', arrows=True, u=u_flx[0, :, :], v=v_flx[0, :, :], filepath='ignore/extended_sim_u_instant.png', dpi=600)
 
-    # Compute fluctuating strain rate 
+    # PLOT: example instantaneous concentration field
+    # cmap = cmr.flamingo_r
+    # utils.plot_field_xy(x_grid, y_grid, odor[0, :, :], cmap=cmap, range=[0.001, 1], title='instantaneous concentration', filepath='ignore/extended_sim/odor_instant.png', dpi=600)
+    # mean concentration field
+    # odor = np.mean(odor, axis=0)
+    # utils.plot_field_xy(x_grid, y_grid, odor, cmap=cmap, range=[0.001, 1], title='time-avg concentration', filepath='ignore/extended_sim/odor_mean.png', dpi=600)
+
+
+    # # PLOT: load and plot mean velocity field (consistent axes version)
+    u_mean = np.load('D:/singlesource_2d_extended/mean_u_0to180s.npy')
+    # u_mean = u_mean.astype(np.float32)
+    # print(f'udims: {u_mean.shape}')
+    # print(f'xgrid dims: {x_grid.shape}')
+    v_mean = np.load('D:/singlesource_2d_extended/mean_v_0to180s.npy')
+    # v_mean = v_mean.astype(np.float32)
+    # # u_tot = np.sqrt(u_mean**2+v_mean**2)
+
+    cmap = cmr.waterlily_r
+    utils.plot_field_xy(x_grid, y_grid, u_mean[:-1, :-1].T, cmap=cmap, range=[-0.25, 0.25], title='mean u', filepath='ignore/extended_sim/u_mean_arrows.png', arrows=True, u=u_mean.T, v=v_mean.T, dpi=600)
+    # # utils.plot_field_xy(x_grid, y_grid, v_mean[:-1, :-1].T, cmap=cmap, range=[-0.15, 0.15], title='mean v', filepath='ignore/extended_sim/v_mean_v2.png', dpi=600)
+
+
+    # # Decompose velocity fields into mean and fluctuating components of u and v
+    # u_flx = u_flx - u_mean.T
+    # v_flx = v_flx - v_mean.T
+    
+    
+    # # u_flx = u_flx[:, 100:-100, :]
+    # # v_flx = v_flx[:, 100:-100, :]
+    # # u_flx = utils.reynolds_decomp(u_flx, time_ax=0)
+    # # v_flx = utils.reynolds_decomp(v_flx, time_ax=0)[1]
+    # # u_flx = u_flx - np.mean(u_flx, axis=0, keepdims=False)
+    # # v_flx = v_flx - np.mean(v_flx, axis=0, keepdims=False)
+
+    # # Compute fluctuating strain rate 
     # dt = 0.02  # sec
     # duflx_dy = np.gradient(u_flx, dt, dx, dx)
     # duflx_dy = np.asarray(duflx_dy)
@@ -44,10 +80,10 @@ def main():
     # dvflx_dx = dvflx_dx[2, :, :, :]
     # np.save('ignore/dvflc_dx_extendedsim.npy', dvflx_dx)
 
-    # duflx_dy = np.load('ignore/duflx_dyv2.npy')
-    # dvflx_dx = np.load('ignore/dvflc_dxv2.npy')
-    # # flx_strain = np.mean(1/2 * (duflx_dy + dvflx_dx), axis=0)
-    # # flx_strain = np.mean(duflx_dy, axis=0)
+    # # duflx_dy = np.load('ignore/duflx_dyv2.npy')
+    # # dvflx_dx = np.load('ignore/dvflc_dxv2.npy')
+    # # # flx_strain = np.mean(1/2 * (duflx_dy + dvflx_dx), axis=0)
+    # # # flx_strain = np.mean(duflx_dy, axis=0)
 
     # nu = 1.5 * 10**(-5) # kinematic viscosity 
     # # Compute viscous energy dissipation rate
@@ -56,51 +92,63 @@ def main():
     # epsilon = np.mean((duflx_dy**2 + dvflx_dx**2), axis=0)
     # print(f'avg viscous dissipation: {np.mean(epsilon)}')
     # print(f'avg viscous dissipation, x=[0, 0.05] and y=[-0.2, 0.2]: {np.mean(epsilon[200:1000, 0:100])}')
+    # print(f'avg viscous dissipation, x=[0.7, 0.75] and y=[-0.2, 0.2]: {np.mean(epsilon[200:1000, 1400:1500])}')
     # plt.close()
     # plt.pcolormesh(epsilon)
     # plt.colorbar()
     # plt.show()
 
-    # # Taylor_microscale = np.sqrt(15 / epsilon) * np.sqrt(0.5 * (np.mean(u_flx**2, axis=0) + np.mean(v_flx**2, axis=0)))
+    # Taylor_microscale = np.sqrt(15 / epsilon) * np.sqrt(0.5 * (np.mean(u_flx**2, axis=0) + np.mean(v_flx**2, axis=0)))
     # # Taylor_microscale = np.sqrt(10 / epsilon) * np.sqrt((np.mean(u_flx**2, axis=0)))
+
+
+
+
+
     # uprime = np.sqrt(0.5*(np.mean(u_flx**2, axis=0) + np.mean(v_flx**2, axis=0)))  # root mean square velocity
-    # K_tscale = 1 / np.sqrt(np.mean(np.sqrt((duflx_dy**2 + dvflx_dx**2))**2, axis=0))
-    # Taylor_microscale = np.sqrt(15)*uprime*K_tscale
+    # # K_tscale = 1 / np.sqrt(np.mean(np.sqrt((duflx_dy**2 + dvflx_dx**2))**2, axis=0))
+    # # Taylor_microscale = np.sqrt(15)*uprime*K_tscale
     # Taylor_Re = uprime * Taylor_microscale / nu
+    # np.save('ignore/extended_sim/Taylor_microscale_v1.npy', Taylor_microscale)
+    # np.save('ignore/extended_sim/Taylor_Re_v1.npy', Taylor_Re)
     
     # # PLOT: Taylor microscale, computed per Carbone & Wilczek, 2024 (https://doi.org/10.1017/jfm.2024.165)
     # print(f'avg Taylor microscale: {np.mean(Taylor_microscale)}')
     # print(f'avg Taylor microscale from x=[0, 0.05] and y=[-0.15, 0.15]: {np.mean(Taylor_microscale[123:723, 0:100])}')
+    # print(f'avg Taylor microscale from x=[0, 0.05] and y=[-0.15, 0.15]: {np.mean(Taylor_microscale[123:723, 1400:1500])}')
     # plt.close()
     # plt.pcolormesh(Taylor_microscale)
     # plt.colorbar()
+    # plt.savefig('ignore/extended_sim/Taylor_microscale_v1.png', dpi=600)
     # plt.show()
 
     # # PLOT: Taylor Reynolds number using methods from Carbone & Wilczek, 2024 (https://doi.org/10.1017/jfm.2024.165)
     # print(f'avg Taylor Re: {np.mean(Taylor_Re)}')
     # print(f'avg Taylor Re from x=[0, 0.05] and y=[-0.15, 0.15]: {np.mean(Taylor_Re[123:723, 0:100])}')
+    # print(f'avg Taylor Re from x=[0, 0.05] and y=[-0.15, 0.15]: {np.mean(Taylor_Re[123:723, 1400:1500])}')
     # plt.close()
     # plt.pcolormesh(Taylor_Re)
     # plt.colorbar()
+    # plt.savefig('ignore/extended_sim/Taylor_Re_v1.png', dpi=600)
     # plt.show()
+
+
+
+
+
+
 
 
     # # Compute turbulent kinetic energy
     # tke = 0.5 * (np.mean(u_flx**2, axis=0) + np.mean(v_flx**2, axis=0))
+    # np.save('ignore/extended_sim/tke_extendedsim.npy', tke)
     # # t_intensity = np.sqrt(tke) / np.sqrt(u_mean**2 + v_mean**2)
 
     # # PLOT: turbulent intensity and turbulent kinetic energy
     # cmap = cmr.ember
-    # utils.plot_field_xy(x_grid, y_grid, tke, title='turbulent kinetic energy', cmap=cmap, filepath='ignore/tke.png', dpi=600, trimmed=False)
+    # utils.plot_field_xy(x_grid, y_grid, tke, title='turbulent kinetic energy', cmap=cmap, filepath='ignore/extended_sim/tke_fullDomain.png', dpi=600, trimmed=False)
     # # utils.plot_field_xy(x_grid, y_grid, t_intensity, title='turbulence intensity', cmap=cmap, range=[0, 0.8], filepath='ignore/t_intensity_trimmed.png', dpi=600, trimmed=True)
 
-    # PLOT: mean velocity field (consistent axes version)
-    u_mean = np.load('D:/singlesource_2d_extended/mean_u_0to180s.npy')
-    v_mean = np.load('D:/singlesource_2d_extended/mean_v_0to180s.npy')
-
-    cmap = cmr.waterlily_r
-    utils.plot_field_xy(x_grid, y_grid, v_mean[:-1, :-1].T, cmap=cmap, title='mean v', filepath='ignore/extended_sim/v_mean.png', dpi=600)
-    utils.plot_field_xy(x_grid, y_grid, u_mean[:-1, :-1].T, cmap=cmap, title='mean u', filepath='ignore/extended_sim/u_mean.png', dpi=600)
 
     # # # PLOTS: integral scales
     # # ils_uxstream = np.load('ignore/ILS_u_cross_stream.npy')

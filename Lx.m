@@ -1,4 +1,4 @@
-function [L, T] = Lx(u,meanU,dt,varargin)
+function [L, T, n_nocross] = Lx(u,meanU,dt,varargin)
 % L = Lx(u,meanU,dt,varargin) calculates the streamwise integral length
 % scale using the autocovariance function. It either compute the area under
 % the curve from a zero lag to the frist zero crossing (method 1) or use an
@@ -25,8 +25,9 @@ p.addOptional('method',1);
 p.addOptional('tmax',[]);
 p.parse(varargin{:});
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-method = p.Results.method ; % Turbulence factor, taken as 1.0 by default.
+method = p.Results.method ;
 tmax = p.Results.tmax ;
+n_nocross = 0;
 
 %% AUTOCOVARIANCE
 
@@ -41,7 +42,9 @@ if isempty(tmax), tmax = dt.*N;end
 % Get the 1-sided autocovariance function
 R = dummy(N+1:end);
 tLag =lags(N+1:end)*dt;
-plot(tLag, R);        
+%figure;
+%plot(tLag, R);   
+%xlim([0 1]);
 
 % Integrate full series
 % ind = N;
@@ -53,9 +56,10 @@ if numel(ind)>=1
     % get the first zero-crossing
     ind = ind(1);
 else 
-    warning('No zero crossing found')
+    % warning('No zero crossing found')
     L=NaN;
     T=NaN;
+    n_nocross = n_nocross + 1;
     return
 end
 
